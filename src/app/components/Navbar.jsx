@@ -1,99 +1,41 @@
 "use client";
-
 import Link from 'next/link';
 import { useState } from 'react';
 
-const Navbar = ({ user }) => { 
+// Navbar sticky bersih ala Cihuynime — tanpa link iklan / eksternal berbayar.
+const Navbar = ({ user }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const useDatabase = process.env.NEXT_PUBLIC_USE_DATABASE === 'true';
-
   const navLinks = [
-    { href: "/populer", name: "Populer" },
-    { href: "/movie", name: "Movie" },
+    { href: "/", name: "Home" },
+    { href: "/ongoing", name: "Ongoing" },
+    { href: "/completed", name: "Completed" },
+    { href: "/animelist", name: "Anime List" },
     { href: "/genre", name: "Genre" },
-    { href: "/schedule", name: "Schedule" },
-    { href: "https://link.sankanime.com", name: "Web Sankanime" },
-    { href: "https://www.whatsapp.com/channel/0029VbBv5edGk1Fo8WbsAK1V", name: "Join Komunitas" },
+    { href: "/schedule", name: "Jadwal" },
+    { href: "/movie", name: "Movie" },
+    { href: "/populer", name: "Populer" },
   ];
-
-  if (useDatabase) {
-    if (user) {
-      navLinks.push({ href: "/users/dashboard", name: "Dashboard" });
-      navLinks.push({ href: "/users/dashboard/my-history", name: "History" });
-      navLinks.push({ href: "/api/auth/signout", name: "Logout" });
-    } else {
-      navLinks.push({ href: "/api/auth/signin", name: "Login" });
-    }
-  } else {
-    navLinks.push({ href: "/users/dashboard/my-history", name: "History" });
-    if (user) {
-      navLinks.push({ href: "/users/dashboard", name: "Dashboard" });
-      navLinks.push({ href: "/api/auth/signout", name: "Logout" });
-    }
-  }
-
+  if (user) navLinks.push({ href: "/users/dashboard", name: "Dashboard" });
   return (
-    <nav className="w-full md:pt-10 pt-5 relative z-50">
-      <div className="container mx-auto flex justify-center items-center px-4">
-        <ul className="hidden md:flex items-center space-x-6">
-          {navLinks.map((link) => (
-            <li key={link.href}>
-              <Link 
-                href={link.href} 
-                className="text-neutral-300 hover:text-pink-500 transition-colors duration-200 font-medium text-md"
-              >
-                {link.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        <div className="md:hidden w-full">
-          <button 
-            onClick={() => setIsOpen(!isOpen)} 
-            aria-label="Toggle menu"
-            className="text-white focus:outline-none"
-          >
-            <svg 
-              className="w-10 h-10" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
-                d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}
-              >
-              </path>
-            </svg>
-          </button>
-        </div>
+    <header className="sticky top-0 z-50 border-b border-white/5 bg-[#07070d]/85 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+        <Link href="/" className="text-xl font-black tracking-tight text-white">
+          Juju<span className="text-fuchsia-500">Otaku</span>
+          <span className="ml-2 hidden rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-neutral-400 sm:inline">NO ADS</span>
+        </Link>
+        <nav className="hidden items-center gap-5 lg:flex">
+          {navLinks.map((l) => (<Link key={l.href} href={l.href} className="text-sm font-medium text-neutral-300 transition hover:text-fuchsia-400">{l.name}</Link>))}
+        </nav>
+        <button onClick={() => setIsOpen(!isOpen)} aria-label="Toggle menu" className="text-white lg:hidden">
+          <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"} /></svg>
+        </button>
       </div>
-
-      <div className={`
-        md:hidden absolute top-full left-0 right-0 bg-[#1A1A29] 
-        transition-all duration-300 ease-in-out overflow-hidden
-        ${isOpen ? 'max-h-screen shadow-lg' : 'max-h-0'}
-      `}>
-        <ul className="flex flex-col p-4">
-          {navLinks.map((link) => (
-            <li key={link.href} className="w-full">
-              <Link 
-                href={link.href} 
-                className="block py-3 px-2 text-neutral-200 hover:bg-pink-700 rounded-md transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                {link.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </nav>
+      {isOpen && (
+        <nav className="border-t border-white/5 px-4 py-3 lg:hidden">
+          {navLinks.map((l) => (<Link key={l.href} href={l.href} onClick={() => setIsOpen(false)} className="block rounded-lg px-2 py-2.5 text-neutral-200 hover:bg-white/5">{l.name}</Link>))}
+        </nav>
+      )}
+    </header>
   );
 }
-
 export default Navbar;

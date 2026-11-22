@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "scrape:test": "node --input-type=module -e \"import('./src/lib/scrapers/index.js').then(async m=>{console.log(await m.getHome('all'))})\""
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
@@ -16,7 +17,8 @@
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "cheerio": "^1.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -103,7 +103,7 @@ function WatchPageContent({ params, episodeSlug }) {
   const [isValidNext, setIsValidNext] = useState(false);
   const [animeInfo, setAnimeInfo] = useState(null);
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = ''; // internal API
 
   useEffect(() => {
     if (!episodeSlug) {
@@ -122,7 +122,8 @@ function WatchPageContent({ params, episodeSlug }) {
       setIsValidNext(false);
 
       try {
-        const episodeResponse = await fetch(`${apiUrl}/episode/${episodeSlug}`);
+        const srcParam = searchParams.get('source') || 'otakudesu';
+        const episodeResponse = await fetch(`/api/anime/episode?source=${encodeURIComponent(srcParam)}&slug=${encodeURIComponent(episodeSlug)}`);
         if (!episodeResponse.ok) {
           throw new Error(`Gagal mengambil data episode. Status: ${episodeResponse.status}`);
         }
@@ -227,7 +228,7 @@ function WatchPageContent({ params, episodeSlug }) {
     const checkEpisodeExistence = async () => {
       if (prevSlug) {
         try {
-          const response = await fetch(`${apiUrl}/episode/${prevSlug}`, { method: 'HEAD' });
+          const response = { ok: false };
           setIsValidPrev(response.ok);
         } catch (error) {
           console.error("Error checking prevSlug:", error);
@@ -238,7 +239,7 @@ function WatchPageContent({ params, episodeSlug }) {
       }
       if (nextSlug) {
         try {
-          const response = await fetch(`${apiUrl}/episode/${nextSlug}`, { method: 'HEAD' });
+          const response = { ok: false };
           setIsValidNext(response.ok);
         } catch (error) {
           console.error("Error checking nextSlug:", error);
@@ -321,7 +322,7 @@ function WatchPageContent({ params, episodeSlug }) {
         <div className="bg-neutral-900 p-4 rounded-lg mb-8">
           <h1 className="text-2xl md:text-3xl font-bold mb-2 truncate">{episodeTitle || 'Memuat judul...'}</h1>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-pink-400">Animasu API</span>
+            <span className="text-sm text-fuchsia-400">JujuOtaku Internal API · Tanpa Iklan</span>
             <div className="flex space-x-2">
               
               {isValidPrev && (

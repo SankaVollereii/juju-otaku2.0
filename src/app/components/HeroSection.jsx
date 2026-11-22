@@ -1,64 +1,42 @@
-
 import React from 'react'
 import SearchInput from './SearchInput'
 import Link from 'next/link'
-import Image from 'next/image'
 
-const HeroSection = () => {
-
-  return (
-    <div className="flex items-center justify-center bg-[#1A1A29] p-4">
-      <div className="w-full max-w-5xl bg-[#252736] lg:h-[500px] rounded-2xl overflow-hidden 
-    grid grid-cols-1 lg:grid-cols-2 
-    shadow-2xl shadow-black/40 border border-neutral-800/30">
-
-        {/* Konten Teks (Sekarang `lg:order-1`) */}
-        <div className="p-6 lg:p-12 flex flex-col justify-center relative 
-      bg-gradient-to-b from-[#2E2F40] to-[#1A1A29] 
-      order-2 lg:order-1">
-
-          <h1 className="text-2xl lg:text-4xl font-bold text-white mb-3 lg:mb-4 relative z-20">
-            JujuOtaku
-          </h1>
-          <p className="text-neutral-400 mb-4 lg:mb-6 text-sm lg:text-base relative z-20">
-            JujuOtaku adalah situs anime gratis tanpa iklan untuk menonton anime gratis
-          </p>
-          <SearchInput />
-          <div className="text-xs text-neutral-400 mb-4 lg:mb-6 relative z-20 line-clamp-2 lg:line-clamp-none">
-            Top search: Demon Slayer: Kimetsu no Y..., Demon Slayer: Kimetsu no Y...,
-            One Piece, Demon Slayer: Mt. Natagum..., Sakamoto Days Part 2,
-            The Fragrant Flower Blooms... Kaiji No. 8 Season 2,
-            Demon Slayer: Kimetsu no Y... Demon Slayer: The Hashira... To Be Hero X
+// Hero ala Cihuynime (www.cihuynime.fun): badge kecil, judul besar di tengah,
+// subjudul tenang, search besar, chip pencarian populer, dan bar statistik.
+const POPULAR = ["One Piece", "Solo Leveling", "Jujutsu Kaisen", "Oshi No Ko", "Frieren", "Mashle"];
+const HeroSection = ({ stats }) => (
+  <section className="relative overflow-hidden px-4 pb-14 pt-16 text-center">
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(217,70,239,0.14),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(34,211,238,0.08),transparent_55%)]" />
+    <div className="relative mx-auto max-w-4xl">
+      <span className="inline-block rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold tracking-wide text-neutral-300">
+        Free Anime Streaming · HD Quality · Tanpa Iklan
+      </span>
+      <h1 className="mt-6 text-4xl font-black leading-tight text-white sm:text-6xl">
+        Watch Free <span className="bg-gradient-to-r from-fuchsia-400 to-cyan-300 bg-clip-text text-transparent">Anime</span> Online
+      </h1>
+      <p className="mx-auto mt-4 max-w-xl text-sm text-neutral-400 sm:text-base">
+        Portal yang tenang dan cepat — update otomatis dari Otakudesu, Kuramanime, dan AnimeKompi. Tanpa iklan, tanpa pop-up.
+      </p>
+      <div className="mx-auto flex max-w-xl justify-center"><SearchInput /></div>
+      <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-xs text-neutral-500">
+        <span>Popular Searches:</span>
+        {POPULAR.map((p) => (<Link key={p} href={`/search/${encodeURIComponent(p)}`} className="rounded-full bg-white/5 px-3 py-1 text-neutral-300 ring-1 ring-white/10 transition hover:bg-fuchsia-600 hover:text-white">{p}</Link>))}
+      </div>
+      <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
+        {(stats || [
+          { v: "3 Sumber", l: "Otakudesu · Kuramanime · AnimeKompi" },
+          { v: "1080p", l: "HD Quality" },
+          { v: "Tiap 15 mnt", l: "Auto-Update" },
+          { v: "Gratis", l: "Tanpa Akun & Iklan" },
+        ]).map((s) => (
+          <div key={s.l} className="rounded-2xl border border-white/5 bg-white/[0.03] px-3 py-4">
+            <div className="text-lg font-extrabold text-white">{s.v}</div>
+            <div className="mt-1 text-[11px] leading-snug text-neutral-400">{s.l}</div>
           </div>
-          <div className="flex flex-col lg:flex-row space-y-3 lg:space-y-0 lg:space-x-4 relative z-20">
-            <Link
-              href="/animelist"
-              className="bg-pink-500 text-white px-6 py-2 lg:py-3 rounded-full flex items-center justify-center"
-            >
-              Database Anime A - Z
-            </Link>
-
-            <Link href={'https://sociabuzz.com/sankanime/tribe'} target='_blank' className="bg-blue-500 text-center text-white px-6 py-2 lg:py-3 rounded-full">
-              Donate JujuOtaku
-            </Link>
-          </div>
-        </div>
-
-        {/* Gambar (Sekarang `lg:order-2`) */}
-        <div className="relative h-[300px] lg:h-auto order-1 lg:order-2">
-          <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#2E2F40] to-transparent z-10"></div>
-          <Image
-            width={500}
-            height={500}
-            src="/images/goku.gif"
-            alt="Anime Character"
-            className="absolute inset-0 w-full h-full object-cover"
-            priority={true}
-          />
-        </div>
+        ))}
       </div>
     </div>
-  )
-}
-
+  </section>
+)
 export default HeroSection

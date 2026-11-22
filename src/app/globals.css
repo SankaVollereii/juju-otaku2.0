@@ -1,30 +1,25 @@
 @import "tailwindcss";
 
+/* Tema ala Cihuynime: gelap bersih, tenang, tanpa distraksi / tanpa iklan */
 :root {
-  /* LANGSUNG ATUR WARNA DARK MODE DI SINI */
-  --background: #1A1A29;       /* Latar belakang utama Anda */
-  --foreground: #ededed;       /* Teks putih Anda */
-  
-  /* Ini adalah warna lain dari desain Anda yang kita tambahkan sebelumnya */
-  --background-secondary: #2E2F40; 
-  --background-hero: #252736;
+  --background: #07070d;
+  --foreground: #f4f4f5;
+  --background-secondary: #10101a;
+  --background-hero: #0d0d17;
   --foreground-secondary: #a1a1aa;
-  --border-color: #3f3f46;
-  --color-accent: #ec4899;
-  --color-accent-2: #3b82f6;
+  --border-color: #23232f;
+  --color-accent: #e879f9;
+  --color-accent-2: #22d3ee;
 }
-
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
-
-body {
-  /* Sekarang body akan SELALU menggunakan var(--background) gelap */
-  background: var(--background);
-  color: var(--foreground);
-  /* font-family akan diambil dari layout.js Anda */
-}
+html { scroll-behavior: smooth; }
+body { background: var(--background); color: var(--foreground); }
+::selection { background: #701a75; color: #fff; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: #26263a; border-radius: 999px; }
+*::-webkit-scrollbar-track { background: transparent; }

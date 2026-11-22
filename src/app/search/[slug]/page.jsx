@@ -1,70 +1,26 @@
+export const dynamic = 'force-dynamic'
 import AnimeCard from '@/app/components/AnimeCard';
 import SearchInput from '@/app/components/SearchInput';
-import Navigation from '@/app/components/Navigation';
+import Navbar from '@/app/components/Navbar';
+import { search } from '@/lib/scrapers/index.js';
 
-async function searchAnime(slug) {
-  if (!slug) return [];
-
-  try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const searchUrl = `${apiUrl}/search/${slug}`;
-
-    const response = await fetch(searchUrl);
-
-    if (!response.ok) {
-      console.error(`API error for slug "${slug}": Status ${response.status}`);
-      return [];
-    }
-
-    const result = await response.json();
-    return result.animes || [];
-  } catch (error) {
-    console.error("Gagal total saat mengambil hasil pencarian:", error);
-    return [];
-  }
-}
-
-export default async function SearchPage({ params: ParamsPromise }) {
-  const params = await ParamsPromise;
-  const { slug } = params;
+export default async function SearchPage({ params, searchParams }) {
+  const { slug } = await params;
+  const sp = (await searchParams) || {};
   const keyword = decodeURIComponent(slug);
-  const searchResults = await searchAnime(slug);
-
+  const { animes, errors } = await search(keyword, sp.source || 'all').catch(() => ({ animes: [], errors: {} }));
   return (
-    <div className="min-h-screen bg-neutral-900 text-white">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <Navigation />
-          <SearchInput />
-          <h1 className="text-3xl md:text-4xl font-bold">
-            {'Hasil Pencarian untuk: '}
-            <span className="text-pink-500">{keyword}</span>
-          </h1>
-        </div>
-        {searchResults && searchResults.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {searchResults.map((anime) => {
-              const slugParts = anime.slug?.split('/').filter(Boolean);
-              const processedSlug = slugParts?.pop() || '';
-              return (
-                <AnimeCard
-                  key={processedSlug || anime.title}
-                  slug={processedSlug}
-                  type={anime.type}
-                  title={anime.title}
-                  image={anime.poster}
-                  episode={anime.episode}
-                />
-              );
-            })}
+    <div className="min-h-screen bg-[#07070d] text-white">
+      <Navbar />
+      <div className="mx-auto max-w-7xl px-4 py-8">
+        <SearchInput />
+        <h1 className="text-3xl font-extrabold">Hasil Pencarian: <span className="text-fuchsia-400">{keyword}</span></h1>
+        <p className="mt-2 text-sm text-neutral-400">{animes.length} hasil dari Otakudesu · Kuramanime · AnimeKompi{errors && Object.keys(errors).length ? ` · sumber bermasalah: ${Object.keys(errors).join(', ')}` : ''}</p>
+        {animes.length ? (
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {animes.map((a) => (<AnimeCard key={`${a.source}-${a.slug}`} slug={a.slug} source={a.source} type={a.type} title={a.title} image={a.poster} episode={a.episode} rating={a.rating} />))}
           </div>
-        ) : (
-          <div className="text-center py-16">
-            <h2 className="text-2xl font-semibold text-neutral-400">
-              {'Yah, tidak ketemu...'}
-            </h2>
-          </div>
-        )}
+        ) : (<div className="py-16 text-center"><h2 className="text-2xl font-semibold text-neutral-400">Yah, tidak ketemu… coba kata kunci lain.</h2></div>)}
       </div>
     </div>
   );

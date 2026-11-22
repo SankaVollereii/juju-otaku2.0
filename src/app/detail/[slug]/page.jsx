@@ -1,188 +1,58 @@
 export const dynamic = 'force-dynamic'
-
 import Navigation from '@/app/components/Navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getDetail } from '@/lib/scrapers/index.js';
 
-// Fungsi Fetch (Tidak berubah, ini sudah benar)
-async function getDetailAnime(slug) {
-  try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${apiUrl}/detail/${slug}`);
-    if (!response.ok) {
-      throw new Error('Gagal mengambil data anime utama (API baru)');
-    }
-    const result = await response.json();
-    return result.detail;
-  } catch (error) {
-    console.error("Gagal mengambil detail anime:", error);
-    return null;
+export default async function DetailAnimePage({ params, searchParams }) {
+  const { slug } = await params;
+  const sp = (await searchParams) || {};
+  const source = sp.source || 'otakudesu';
+  const decodedSlug = decodeURIComponent(slug);
+  let anime = null;
+  // coba sumber yang diminta, lalu fallback ke sumber lain dengan slug sama
+  for (const src of [source, 'otakudesu', 'kuramanime', 'animekompi']) {
+    try { anime = await getDetail(src, decodedSlug); if (anime && anime.title) { anime.source = src; break; } } catch {}
   }
-}
-
-export default async function DetailAnimePage({ params: paramsPromise }) {
-  const params = await paramsPromise;
-  const { slug } = params; // Ini adalah slug yang "bersih", cth: "one-punch-man-s3"
-
-  const anime = await getDetailAnime(slug);
-
   if (!anime) {
-    return (
-      <div className="min-h-screen bg-neutral-900 text-white flex flex-col justify-center items-center text-center">
-        <h1 className="text-2xl font-bold text-red-500">Anime Tidak Ditemukan</h1>
-        <p className="text-neutral-400 mt-2">Data untuk anime ini tidak dapat dimuat.</p>
-        <Navigation />
-      </div>
-    );
+    return (<div className="flex min-h-screen flex-col items-center justify-center bg-[#07070d] text-center text-white"><h1 className="text-2xl font-bold text-red-400">Anime Tidak Ditemukan</h1><p className="mt-2 text-neutral-400">Coba cari lewat pencarian — judul ini mungkin memakai slug berbeda di tiap sumber.</p><Navigation /></div>);
   }
-
-  // --- PERBAIKAN: Ambil info langsung dari root 'anime' (data 'detail') ---
-  const duration = anime.duration || 'N/A';
-  const producer = anime.author || 'N/A';
-  const season = anime.season || 'N/A';
-  const releaseDate = anime.aired || 'N/A';
-  const studio = anime.studio || 'N/A';
-  const japaneseTitle = anime.synonym || 'N/A';
-  const status = anime.status || 'N/A';
-
-  // --- LOGIKA BARU: Siapkan Query Params untuk Halaman Nonton ---
-  // Kita akan mengirimkan data ini ke /watch page melalui URL
-  const historyQueryParams = new URLSearchParams({
-    slug: slug,             // Slug bersih, cth: "one-punch-man-s3"
-    title: anime.title,     // Judul anime, cth: "One Punch Man S3"
-    image: anime.poster,    // URL Poster
-  });
-  const queryString = historyQueryParams.toString();
-  // Hasil: "slug=one-punch-man-s3&title=One+Punch+Man+S3&image=http%3A%2F%2F..."
-  // -------------------------------------------------------------
-
+  const q = new URLSearchParams({ slug: decodedSlug, title: anime.title || '', image: anime.poster || '', source: anime.source || source }).toString();
+  const info = [["Japanese", anime.synonym], ["Producer", anime.author], ["Season", anime.season], ["Release", anime.aired], ["Studio", anime.studio], ["Status", anime.status], ["Type", anime.type], ["Duration", anime.duration], ["Rating", anime.rating], ["Sumber", anime.source]];
   return (
-
-    <div className="relative min-h-screen bg-neutral-900 text-white">
-      <div
-        className="absolute inset-0 bg-cover bg-center blur-sm opacity-30"
-        style={{ backgroundImage: `url(${anime.poster})` }}
-      ></div>
-      <div className="relative z-10 container mx-auto px-4 py-8">
+    <div className="relative min-h-screen bg-[#07070d] text-white">
+      {anime.poster && (<div className="absolute inset-0 bg-cover bg-center opacity-20 blur-2xl" style={{ backgroundImage: `url(${anime.poster})` }}></div>)}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8">
         <Navigation />
-        <div className="md:flex mt-8">
-          <div className="md:w-1/3 justify-center flex mb-6 md:mb-0 md:pr-8 flex-shrink-0">
-            <Image
-              src={anime.poster}
-              alt={anime.title}
-              className="object-cover rounded-lg shadow-xl"
-              width={400}
-              height={600}
-              priority
-            />
+        <div className="mt-8 md:flex">
+          <div className="mb-6 flex flex-shrink-0 justify-center md:mb-0 md:w-1/3 md:pr-8">
+            {anime.poster && (<Image src={anime.poster} alt={anime.title} className="rounded-2xl object-cover shadow-2xl ring-1 ring-white/10" width={400} height={600} priority unoptimized />)}
           </div>
           <div className="md:w-2/3">
-            <h1 className="text-4xl font-bold mb-4">{anime.title}</h1>
-            <div className="flex items-center space-x-4 mb-4">
-              <span className="text-neutral-400">{status} • {duration}</span>
+            <span className="rounded-full bg-white/5 px-3 py-1 text-xs capitalize text-cyan-300 ring-1 ring-white/10">Sumber: {anime.source}</span>
+            <h1 className="mb-4 mt-3 text-3xl font-black sm:text-4xl">{anime.title}</h1>
+            <div className="mb-6 flex flex-wrap gap-3">
+              {anime.episodes?.[0] && (<Link href={`/watch/${encodeURIComponent(anime.episodes[0].slug)}?${q}`} className="rounded-full bg-fuchsia-600 px-6 py-2.5 font-semibold text-white transition hover:bg-fuchsia-500">▶ Watch Now</Link>)}
+              {anime.url && (<a href={anime.url} target="_blank" rel="noreferrer" className="rounded-full bg-white/5 px-6 py-2.5 font-semibold text-neutral-200 ring-1 ring-white/10">Sumber Asli ↗</a>)}
             </div>
-            <div className="flex space-x-4 mb-6">
-
-              {/* --- MODIFIKASI: Tambahkan queryString ke tombol "Watch Now" --- */}
-              <Link
-                href={`/watch/${anime.episodes?.[0]?.slug || ''}?${queryString}`}
-                className="bg-pink-600 text-white px-6 py-2 rounded-full flex items-center space-x-2 hover:bg-pink-700 transition"
-              >
-                Watch Now
-              </Link>
-
-              {anime.batch && anime.batch.slug && (
-                <Link
-                  href={`/download/${anime.batch.slug}`}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-full flex items-center space-x-2 hover:bg-blue-700 transition"
-                >
-                  Download Batch
-                </Link>
-              )}
+            <p className="leading-relaxed text-neutral-300">{anime.synopsis || 'Tidak ada sinopsis tersedia.'}</p>
+            <div className="mt-6 grid grid-cols-2 gap-4 text-sm text-neutral-400 md:grid-cols-3">
+              {info.filter(([, v]) => v).map(([k, v]) => (<div key={k}><span className="block font-semibold text-white">{k}</span>{v}</div>))}
             </div>
-            <div className='flex flex-col mb-4 overflow-hidden'>
-              <p className="text-neutral-300">
-                {anime.synopsis || 'Tidak ada sinopsis tersedia.'}
-              </p>
-            </div>
-
-            {/* Info Grid (Tidak berubah) */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-neutral-400">
-              <div>
-                <span className="font-semibold text-white block">Japanese</span>
-                {japaneseTitle}
-              </div>
-              <div>
-                <span className="font-semibold text-white block">Producer</span>
-                {producer}
-              </div>
-              <div>
-                <span className="font-semibold text-white block">Season</span>
-                {season}
-              </div>
-              <div>
-                <span className="font-semibold text-white block">Release Date</span>
-                {releaseDate}
-              </div>
-              <div>
-                <span className="font-semibold text-white block">Studio</span>
-                {studio}
-              </div>
-              <div>
-                <span className="font-semibold text-white block">Status</span>
-                {status}
-              </div>
-            </div>
-
-            {/* Genres (Tidak berubah) */}
-            <div className="mt-4">
-              <span className="font-semibold text-white block mb-2">Genres</span>
-              <div className="flex flex-wrap gap-2">
-                {anime.genres?.map((genre) => (
-                  <span key={genre.slug} className="bg-neutral-800 text-neutral-300 px-3 py-1 rounded-full text-sm">
-                    {genre.name}
-                  </span>
-                ))}
-              </div>
-            </div>
+            {anime.genres?.length > 0 && (<div className="mt-5"><span className="mb-2 block font-semibold text-white">Genres</span><div className="flex flex-wrap gap-2">{anime.genres.map((g) => (<Link key={g.slug} href={`/genre/${g.slug}`} className="rounded-full bg-white/5 px-3 py-1 text-sm text-neutral-200 ring-1 ring-white/10 hover:bg-fuchsia-600 hover:text-white">{g.name}</Link>))}</div></div>)}
           </div>
         </div>
       </div>
-
-      {/* Bagian Episode List */}
-      <div className="relative z-10 container mx-auto px-4 md:px-8 py-8">
-        <h2 className="text-2xl font-bold mb-4">Episodes</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {anime.episodes && anime.episodes.length > 0 ? (
-            anime.episodes.map((episode) => (
-
-              // --- MODIFIKASI: Tambahkan queryString ke setiap link episode ---
-              <Link
-                key={episode.slug}
-                href={`/watch/${episode.slug}?${queryString}`}
-                className="bg-neutral-800 rounded-lg p-4 flex items-center space-x-4 hover:bg-neutral-700 transition"
-              >
-                <div className="w-24 h-12 bg-neutral-700 rounded flex items-center justify-center flex-shrink-0">
-                  <span className="text-pink-500 font-bold text-sm">
-                    {episode.name.split(' ')[1] || 'EP'}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold line-clamp-1">
-                    {episode.name}
-                  </h3>
-                  <p className="text-xs text-neutral-400">
-                    {duration || 'N/A'}
-                  </p>
-                </div>
-              </Link>
-            ))
-          ) : (
-            <div className="col-span-full text-center text-neutral-400 py-8">
-              {'No episodes available for this anime yet.'}
-            </div>
-          )}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8">
+        <h2 className="mb-4 text-2xl font-extrabold">Episodes ({anime.episodes?.length || 0})</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {(anime.episodes || []).map((ep) => (
+            <Link key={ep.slug} href={`/watch/${encodeURIComponent(ep.slug)}?${q}`} className="rounded-xl bg-white/[0.04] p-4 ring-1 ring-white/5 transition hover:bg-fuchsia-600/20">
+              <span className="text-sm font-semibold line-clamp-2">{ep.title}</span>
+            </Link>
+          ))}
         </div>
+        {!anime.episodes?.length && (<p className="py-6 text-center text-neutral-400">Belum ada episode yang terbaca dari sumber ini.</p>)}
       </div>
     </div>
   );
